@@ -2,14 +2,13 @@
 TO DO: 
 
 
-1. JAKIS FAJNY FEATURE ENGINEERING JESZCZE 
+1. Wykres do prezentacji
 
 
-2. SMILE
+2. JAKIS FAJNY FEATURE ENGINEERING JESZCZE 
 
 
-3. ROZNE ALGO: SVM, LG , Xgboost, adanaboost, NN, KNN, RF
+3. ROZNE ALGO: SVM, LG , Xgboost, AdaBoost, NN, KNN, RF, NB , LighGBM
 
  
-4. Own loss function
 
