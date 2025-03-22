@@ -67,12 +67,12 @@ class TimeTransformer(BaseEstimator, TransformerMixin):
         df["month"] = df["Transaction.Date"].dt.month.astype(float)
         df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
         df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
-        df["month_angle"]=np.arctan2(df["month_sin"],df["month_cos"]) 
+        df["month_angle"]=np.arctan2(df["month_sin"],df["month_cos"]).astype(float) 
 
         if "Transaction.Hour" in df.columns:
             df["hour_sin"] = np.sin(2 * np.pi * df["Transaction.Hour"] / 24)
             df["hour_cos"] = np.cos(2 * np.pi * df["Transaction.Hour"] / 24)
-            df["hour_angle"] = np.arctan2(df["hour_sin"], df["hour_cos"])
+            df["hour_angle"] = np.arctan2(df["hour_sin"], df["hour_cos"]).astype(float)
         else:
             raise ValueError("What are you doing man? Time")
 
