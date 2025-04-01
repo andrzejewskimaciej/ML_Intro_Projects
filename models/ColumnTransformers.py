@@ -52,8 +52,8 @@ from sklearn.feature_selection  import RFE
 
 class TimeTransformer(BaseEstimator, TransformerMixin):
 
-    def __init__(self):
-        pass
+    def __init__(self, is_catboost=False):
+        self.is_catboost = is_catboost
     def fit(self, X, y=None):
         return self  
     def transform(self, X):
@@ -77,12 +77,15 @@ class TimeTransformer(BaseEstimator, TransformerMixin):
             raise ValueError("What are you doing man? Time")
 
         df["Transaction.Weekday"] = df["Transaction.Date"].dt.weekday + 1
-        df["FirstPartMonth"]=df["day"].apply(lambda x: 1 if x<=12 else 0) 
+        df["Transaction.Weekday"] = df["Transaction.Weekday"].astype(int)
+        df["FirstPartMonth"]=df["day"].apply(lambda x: 1 if x<=12 else 0).astype(int) 
 
         weekDaysEncoded=pd.get_dummies(df["Transaction.Weekday"], dtype=int) 
-
-        result=pd.concat([df[["month_angle", "hour_angle","FirstPartMonth"]], weekDaysEncoded], axis=1)
-
+        if self.is_catboost:
+            result=df[["month_angle", "hour_angle","FirstPartMonth","Transaction.Weekday"]]
+        else:
+           result=pd.concat([df[["month_angle", "hour_angle","FirstPartMonth"]], weekDaysEncoded], axis=1)
+    
         return result.to_numpy()
 
 
@@ -102,7 +105,7 @@ class AgeTransfomer(BaseEstimator, TransformerMixin):
             raise ValueError("What are you doing man? Age")
         df["Is.Minor"]=df["Customer.Age"].apply(lambda x : 1 if x<18 else 0) 
         df["Is.Senior"]=df["Customer.Age"].apply(lambda x : 1 if x>60 else 0) 
-        return pd.concat([df[["Is.Minor"]], df[["Is.Senior"]]], axis = 1).to_numpy()
+        return pd.concat([df[["Is.Minor"]], df[["Is.Senior"]]], axis = 1).to_numpy().astype(int)
 
 
 
@@ -119,7 +122,7 @@ class SexTransformer(BaseEstimator, TransformerMixin):
         if "sex" not in df.columns: 
             raise ValueError("What are you doing man? Sex")
         df["male"]=df["sex"].apply(lambda x : 1 if x=="M" else 0)
-        return df[["male"]].to_numpy() 
+        return df[["male"]].to_numpy().astype(int) 
 
 
 # In[6]:
@@ -132,7 +135,7 @@ class BinaryPassthroughTransformer(BaseEstimator, TransformerMixin):
         return self  
     def transform(self, X):  
         df=X.copy()
-        return df[["Address.Match"]].to_numpy() 
+        return df[["Address.Match"]].to_numpy().astype(int)
 
 
 # In[7]:
@@ -149,17 +152,30 @@ class HighAmountTransformer(BaseEstimator, TransformerMixin):
             raise ValueError("What are you doing man? Amount")
         HighAmountInt=df["Transaction.Amount"].quantile(0.95)
         df["Is.HighAmount"]=df["Transaction.Amount"].apply(lambda x : 1 if x>=HighAmountInt else 0) 
-        return df[["Is.HighAmount"]].to_numpy() 
+        return df[["Is.HighAmount"]].to_numpy().astype(int)
 
 
 # In[8]:
 
 
 def KCrossData():
-    df = df=pd.read_csv("../data/TrainData.csv")
+    df =pd.read_csv("../data/TrainData.csv")
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
+
+def getTrainingData():
+    df =pd.read_csv("../data/TrainData.csv")
+    X = df.drop(columns=["Is.Fraudulent"]).copy()
+    y = df["Is.Fraudulent"].copy()
+    return X,y
+def getTestData():
+    df=pd.read_csv("../data/TestData.csv")
+    X = df.drop(columns=["Is.Fraudulent"]).copy()
+    y = df["Is.Fraudulent"].copy()
+    return X,y
+
+
 def GetScalePosWeight(y): 
     return y.sum()/y.shape[0]
 
@@ -199,9 +215,11 @@ def PipeLineGradient(Numerical=['Transaction.Amount', 'Customer.Age','Account.Ag
     return LR_pipeline
 
 def PipeLineColumnTransformer(Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
-                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source']): 
+                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source'],CatBoost=False):
+
+    time_transformer = TimeTransformer(is_catboost=CatBoost)
     column_transformer = ColumnTransformer([
-        ('time_features', TimeTransformer(),["Transaction.Date","Transaction.Hour"]), 
+        ('time_features', time_transformer,["Transaction.Date","Transaction.Hour"]), 
         ("high_amount",HighAmountTransformer(),["Transaction.Amount"]),
         ("numerical",StandardScaler(),Numerical), 
         ("age",AgeTransfomer(),["Customer.Age"]),
