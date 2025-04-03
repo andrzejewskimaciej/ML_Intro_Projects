@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -22,7 +17,7 @@ from sklearn.feature_selection  import RFE
 
 
 
-# In[2]:
+
 
 
 # df = pd.read_csv("merged_dataset.csv", engine="python", sep=",")
@@ -47,7 +42,6 @@ from sklearn.feature_selection  import RFE
 # TrainData.to_csv("TrainData.csv", index=False)
 
 
-# In[3]:
 
 
 class TimeTransformer(BaseEstimator, TransformerMixin):
@@ -90,7 +84,7 @@ class TimeTransformer(BaseEstimator, TransformerMixin):
 
 
 
-# In[4]:
+
 
 
 class AgeTransfomer(BaseEstimator, TransformerMixin): 
@@ -109,7 +103,7 @@ class AgeTransfomer(BaseEstimator, TransformerMixin):
 
 
 
-# In[5]:
+
 
 
 class SexTransformer(BaseEstimator, TransformerMixin): 
@@ -125,7 +119,7 @@ class SexTransformer(BaseEstimator, TransformerMixin):
         return df[["male"]].to_numpy().astype(int) 
 
 
-# In[6]:
+
 
 
 class BinaryPassthroughTransformer(BaseEstimator, TransformerMixin): 
@@ -138,7 +132,6 @@ class BinaryPassthroughTransformer(BaseEstimator, TransformerMixin):
         return df[["Address.Match"]].to_numpy().astype(int)
 
 
-# In[7]:
 
 
 class HighAmountTransformer(BaseEstimator, TransformerMixin): 
@@ -155,7 +148,7 @@ class HighAmountTransformer(BaseEstimator, TransformerMixin):
         return df[["Is.HighAmount"]].to_numpy().astype(int)
 
 
-# In[8]:
+
 
 
 def KCrossData():
@@ -180,8 +173,6 @@ def GetScalePosWeight(y):
     return y.sum()/y.shape[0]
 
 
-# In[9]:
-
 
 def PipelineModel(model,Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
                     CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source']):
@@ -196,7 +187,15 @@ def PipelineModel(model,Numerical=['Transaction.Amount', 'Customer.Age','Account
      ])
     return classifier_pipeline
 
-
+def CatBoostTransformer(Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity']): 
+    time_transformer=TimeTransformer(is_catboost=True)
+    column_transformer = ColumnTransformer([
+        ('time_features', time_transformer,["Transaction.Date","Transaction.Hour"]), 
+        ("high_amount",HighAmountTransformer(),["Transaction.Amount"]),
+        ("numerical",StandardScaler(),Numerical), 
+        ("age",AgeTransfomer(),["Customer.Age"]), 
+        ("dropColumns",'drop',["Transaction.Date","Transaction.Hour"])],remainder="passthrough") 
+    return column_transformer
 
 def CreateFeatureSelector(): 
     log_clf = LogisticRegression(C=0.1, class_weight="balanced",  penalty='l1', 
@@ -247,14 +246,6 @@ def FitPredictResult(model,X_train,X_test,y_train,y_test):
     y_pred=classifier.predict(X_test) 
     PredictionQualityInfo(y_pred,y_test) 
 
-
-# In[10]:
-
-
-#(147000, 39) After transformation
-
-
-# In[ ]:
 
 
 
