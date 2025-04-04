@@ -14,6 +14,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection  import RFE
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.naive_bayes import CategoricalNB
+
 
 
 
@@ -46,8 +49,9 @@ from sklearn.feature_selection  import RFE
 
 class TimeTransformer(BaseEstimator, TransformerMixin):
 
-    def __init__(self, is_catboost=False):
+    def __init__(self, is_catboost=False, is_NB=False):
         self.is_catboost = is_catboost
+        self.is_NB = is_NB
     def fit(self, X, y=None):
         return self  
     def transform(self, X):
@@ -77,6 +81,8 @@ class TimeTransformer(BaseEstimator, TransformerMixin):
         weekDaysEncoded=pd.get_dummies(df["Transaction.Weekday"], dtype=int) 
         if self.is_catboost:
             result=df[["month_angle", "hour_angle","FirstPartMonth","Transaction.Weekday"]]
+        elif self.is_NB: 
+            result=pd.concat([df[["month", "day","FirstPartMonth"]], weekDaysEncoded], axis=1)
         else:
            result=pd.concat([df[["month_angle", "hour_angle","FirstPartMonth"]], weekDaysEncoded], axis=1)
     
@@ -176,8 +182,8 @@ def GetScalePosWeight(y):
 
 def PipelineModel(model,Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
                     CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source']):
-
-    column_transformer=PipeLineColumnTransformer(Numerical,CatBasic)
+    NB = isinstance(model, CategoricalNB)
+    column_transformer=PipeLineColumnTransformer(Numerical,CatBasic, NB = NB)
     selector=CreateFeatureSelector()
     classifier_pipeline=Pipeline([
     ('preprocessor', column_transformer),  
@@ -214,13 +220,14 @@ def PipeLineGradient(Numerical=['Transaction.Amount', 'Customer.Age','Account.Ag
     return LR_pipeline
 
 def PipeLineColumnTransformer(Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
-                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source'],CatBoost=False):
+                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source'],CatBoost=False,NB=False):
 
-    time_transformer = TimeTransformer(is_catboost=CatBoost)
+    time_transformer = TimeTransformer(is_catboost=CatBoost,is_NB=NB)
+    Scaler = StandardScaler() if not NB else MinMaxScaler()
     column_transformer = ColumnTransformer([
         ('time_features', time_transformer,["Transaction.Date","Transaction.Hour"]), 
         ("high_amount",HighAmountTransformer(),["Transaction.Amount"]),
-        ("numerical",StandardScaler(),Numerical), 
+        ("numerical",Scaler,Numerical), 
         ("age",AgeTransfomer(),["Customer.Age"]),
         ("sex",SexTransformer(),["sex"]),
         ("AddressMatch",BinaryPassthroughTransformer(),["Address.Match"]),
