@@ -196,7 +196,15 @@ def PipelineModel(model,Numerical=['Transaction.Amount', 'Customer.Age','Account
      ])
     return classifier_pipeline
 
-
+def CatBoostTransformer(Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity']): 
+    time_transformer=TimeTransformer(is_catboost=True)
+    column_transformer = ColumnTransformer([
+        ('time_features', time_transformer,["Transaction.Date","Transaction.Hour"]), 
+        ("high_amount",HighAmountTransformer(),["Transaction.Amount"]),
+        ("numerical",StandardScaler(),Numerical), 
+        ("age",AgeTransfomer(),["Customer.Age"]), 
+        ("dropColumns",'drop',["Transaction.Date","Transaction.Hour"])],remainder="passthrough") 
+    return column_transformer
 
 def CreateFeatureSelector(): 
     log_clf = LogisticRegression(C=0.1, class_weight="balanced",  penalty='l1', 
