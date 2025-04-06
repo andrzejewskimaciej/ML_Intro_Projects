@@ -1,4 +1,5 @@
 {
-    "C": 1e-05,
-    "class_weight": "balanced"
+    "C": 0.005,
+    "class_weight": "balanced",
+    "penalty": "l2"
 }
