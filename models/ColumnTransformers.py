@@ -87,7 +87,15 @@ class TimeTransformer(BaseEstimator, TransformerMixin):
            result=pd.concat([df[["month_angle", "hour_angle","FirstPartMonth"]], weekDaysEncoded], axis=1)
     
         return result.to_numpy()
-
+    def get_feature_names_out(self,input_features=None):
+        if self.is_catboost:
+            return np.array(["month_angle", "hour_angle", "FirstPartMonth", "Transaction.Weekday"])
+        elif self.is_NB:
+            dummy_columns = [f"Transaction.Weekday_{i}" for i in range(1, 8)]
+            return np.array(["month", "day", "FirstPartMonth"] + dummy_columns)
+        else:
+            dummy_columns = [f"Transaction.Weekday_{i}" for i in range(1, 8)]
+            return np.array(["month_angle", "hour_angle", "FirstPartMonth"] + dummy_columns)
 
 
 
@@ -105,8 +113,10 @@ class AgeTransfomer(BaseEstimator, TransformerMixin):
             raise ValueError("What are you doing man? Age")
         df["Is.Minor"]=df["Customer.Age"].apply(lambda x : 1 if x<18 else 0) 
         df["Is.Senior"]=df["Customer.Age"].apply(lambda x : 1 if x>60 else 0) 
-        return pd.concat([df[["Is.Minor"]], df[["Is.Senior"]]], axis = 1).to_numpy().astype(int)
 
+        return pd.concat([df[["Is.Minor"]], df[["Is.Senior"]]], axis = 1).to_numpy().astype(int)
+    def get_feature_names_out(self,input_features=None):
+        return np.array(["Is.Minor", "Is.Senior"])
 
 
 
@@ -122,7 +132,10 @@ class SexTransformer(BaseEstimator, TransformerMixin):
         if "sex" not in df.columns: 
             raise ValueError("What are you doing man? Sex")
         df["male"]=df["sex"].apply(lambda x : 1 if x=="M" else 0)
-        return df[["male"]].to_numpy().astype(int) 
+
+        return df[["male"]].to_numpy().astype(int)
+    def get_feature_names_out(self,input_features=None):
+        return np.array(["Sex"])
 
 
 
@@ -136,7 +149,8 @@ class BinaryPassthroughTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X):  
         df=X.copy()
         return df[["Address.Match"]].to_numpy().astype(int)
-
+    def get_feature_names_out(self,input_features=None):
+        return np.array(["Address.Match"])
 
 
 
@@ -152,7 +166,8 @@ class HighAmountTransformer(BaseEstimator, TransformerMixin):
         HighAmountInt=df["Transaction.Amount"].quantile(0.95)
         df["Is.HighAmount"]=df["Transaction.Amount"].apply(lambda x : 1 if x>=HighAmountInt else 0) 
         return df[["Is.HighAmount"]].to_numpy().astype(int)
-
+    def get_feature_names_out(self,input_features=None):
+        return np.array(["Is.HighAmount"])
 
 
 
@@ -173,6 +188,13 @@ def getTestData():
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
+    
+def getValidationData():
+    df=pd.read_csv("../data/ValidationData.csv")
+    X = df.drop(columns=["Is.Fraudulent"]).copy()
+    y = df["Is.Fraudulent"].copy()
+    return X,y
+
 
 
 def GetScalePosWeight(y): 
@@ -181,13 +203,13 @@ def GetScalePosWeight(y):
 
 
 def PipelineModel(model,Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
-                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source']):
+                    CatBasic=["Payment.Method",'browser','Product.Category','Device.Used','source'],n=30):
     NB = isinstance(model, CategoricalNB)
     column_transformer=PipeLineColumnTransformer(Numerical,CatBasic, NB = NB)
-    selector=CreateFeatureSelector()
+    selector=CreateFeatureSelector(n)
     classifier_pipeline=Pipeline([
     ('preprocessor', column_transformer),  
-    #('smote', SMOTE(sampling_strategy=0.1,random_state=42)), ## TO DISCUSS
+    #('smote', SMOTE(sampling_strategy=0.1,random_state=42))
     ('featureselection',selector),
     ('model',model)
      ])
@@ -203,10 +225,10 @@ def CatBoostTransformer(Numerical=['Transaction.Amount', 'Customer.Age','Account
         ("dropColumns",'drop',["Transaction.Date","Transaction.Hour"])],remainder="passthrough") 
     return column_transformer
 
-def CreateFeatureSelector(): 
+def CreateFeatureSelector(n=30): 
     log_clf = LogisticRegression(C=0.1, class_weight="balanced",  penalty='l1', 
     solver='liblinear', random_state=42)
-    selector = RFE(estimator=log_clf, n_features_to_select=30, step=1)
+    selector = RFE(estimator=log_clf, n_features_to_select=n, step=1)
     return selector
 
 def PipeLineGradient(Numerical=['Transaction.Amount', 'Customer.Age','Account.Age.Days','Quantity'],
