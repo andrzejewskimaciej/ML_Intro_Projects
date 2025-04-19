@@ -173,24 +173,24 @@ class HighAmountTransformer(BaseEstimator, TransformerMixin):
 
 
 def KCrossData():
-    df =pd.read_csv("../../data/TrainData.csv")
+    df =pd.read_csv("../data/TrainData.csv")
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
 
 def getTrainingData():
-    df =pd.read_csv("../../data/TrainData.csv")
+    df =pd.read_csv("../data/TrainData.csv")
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
 def getTestData():
-    df=pd.read_csv("../../data/TestData.csv")
+    df=pd.read_csv("../data/TestData.csv")
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
     
 def getValidationData():
-    df=pd.read_csv("../../data/ValidationData.csv")
+    df=pd.read_csv("../data/ValidationData.csv")
     X = df.drop(columns=["Is.Fraudulent"]).copy()
     y = df["Is.Fraudulent"].copy()
     return X,y
