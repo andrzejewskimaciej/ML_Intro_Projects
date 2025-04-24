@@ -36,8 +36,16 @@ Wnioski z modeli zaawansowanych: modele LightBGM oraz CatBoost sprawdzały sie n
 
 ### 4. Ostateczny model, ewaluacja
 
-Jako ostateczny model przyjęliśmy połączenie LightBgm z Catboostem za pomocą soft VoteClassifiera
+Jako ostateczny model przyjęliśmy połączenie LightBgm z Random Forest za pomocą soft VoteClassifiera. 
 
+Model osiąga następujące wyniki:
 
+![](C:\Users\Dom\AppData\Roaming\marktext\images\2025-04-24-18-22-25-image.png)
 
+Interpretowalność: zarówno LightBgm jak i RandomForest swoje decyzje opierają przede wszystkim na trzech cechach:
 
+* długości istnienia konta,
+
+* informacji, czy transakcja została dokonana w pierwszych 12 dniach miesiąca,
+
+* wysokości kwoty transakcji.
