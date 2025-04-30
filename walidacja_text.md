@@ -1,3 +1,11 @@
+## Sposób walidacji
+
+Walidacja była przeprowadzana poprzez analizę (w tym wykonywanie) kodu zespołu tworzącego model (czasami pisano również własny kod, jednak zespół budujący przygotowywał również funkcje stricte dla zespołu walidacyjnego, które, w ocenie tegoż, nie zawierały błędów i były wystarczające do ewaluacji modelu). Zespół budowy  zdecydował się na pracę w środowisku Google Colab, a w związku ze specyfiką tego środowiska jedynym sensownym rozwiązaniem na walidację było uruchamianie kodu bezpośrednio w miejscu pracy zespołu budującego, tj. [pod tym linkiem](https://colab.research.google.com/drive/1KBg7L8i4F9Aa8L2jZHGk5_hRMSA6RLY9?usp=sharing).
+
+
+
+Przed prezentacją każdego z kamieni miliowych zespół budujący otrzymywał słowny feedback od zespołu walidacyjnego. Treści tych wiadomości znajdują się poniżej.
+
 ## 1. kamień milowy
 
 Eksploracyjna analiza danych została przeprowadzona w sposób poprawny
