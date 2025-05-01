@@ -18,7 +18,6 @@ Uwagi do dotychczasowej pracy:
   Nawet w przypadku bardzo ciemnego nieba powinien być zauważalny przez algorytm kontrast między obiektami z gruntu, a niebem 
 * Może w augmentacji by spróbować stworzyć nowe zdjęcia poprzez dodanie szumu do kanałów kolorów w już istniejących obrazach?
 * Fajny pomysł z odcięciem ostatniego layera i dodaniem sklearnowych rzeczy 
-* Ogólnie nie wiemy dokładnie co tam się wyczynia, ale wyniki są dobre, wygląda w porządku
 
 ## 3. kamień milowy
 
