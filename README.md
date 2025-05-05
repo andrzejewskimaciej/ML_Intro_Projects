@@ -40,7 +40,9 @@ Jako ostateczny model przyjęliśmy połączenie LightBgm z Random Forest za pom
 
 Model osiąga następujące wyniki:
 
-![](C:\Users\Dom\AppData\Roaming\marktext\images\2025-04-24-18-22-25-image.png)
+
+
+![](best_performance.png)
 
 Interpretowalność: zarówno LightBgm jak i RandomForest swoje decyzje opierają przede wszystkim na trzech cechach:
 
