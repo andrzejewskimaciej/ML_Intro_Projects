@@ -38,11 +38,9 @@ Wnioski z modeli zaawansowanych: modele LightBGM oraz CatBoost sprawdzały sie n
 
 Jako ostateczny model przyjęliśmy połączenie LightBgm z Random Forest za pomocą soft VoteClassifiera. 
 
-Model osiąga następujące wyniki:
 
 
-
-![](best_performance.png)
+![](prezentacja_finalna/best_performance.png)
 
 Interpretowalność: zarówno LightBgm jak i RandomForest swoje decyzje opierają przede wszystkim na trzech cechach:
 
