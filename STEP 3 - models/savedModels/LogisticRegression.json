@@ -1,5 +1,0 @@
-{
-    "C": 0.005,
-    "class_weight": "balanced",
-    "penalty": "l2"
-}
