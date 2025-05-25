@@ -16,7 +16,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 
 class StateTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.output_col_ = "north_state_address"
+        self.output_col_ = ["north_state_address", "address_state"]
         self.North = {'CO', 'CT', 'DE', 'DC','ID', 'IL', 'IA', 'IN', 'ME', 'MD', 'MA',
                       'MI', 'MN', 'MT', 'NE', 'NH', 'NJ', 'ND', 'NV', 'NY', 'OH',
                       'OR', 'PA', 'RI', 'SD', 'UT', 'VT', 'WA', 'WI', 'WY'}
@@ -37,16 +37,16 @@ class StateTransformer(BaseEstimator, TransformerMixin):
             bad = X.loc[unknown, "address_state"].unique()
             raise ValueError(f"Unknown states encountered: {bad.tolist()}")
         df_ = X.copy()
-        df_['north_south_address'] = df_['address_state'].apply(lambda x: 1 if x in self.North else 0)
-        return df_[['north_south_address']].values
+        df_['north_state_address'] = df_['address_state'].apply(lambda x: 1 if x in self.North else 0)
+        return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
-        return np.array([self.output_col_])
+        return np.array(self.output_col_)
 
 
 class PurposeTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.output_col_ = "purpose_clustered"
+        self.output_col_ = ["purpose_clustered"]
         self.life = {'car', 'home', 'home improvement', 'house', 'medical', 'moving', 'vacation', 'wedding',
                      'major purchase',
                      'renewable_energ'}
@@ -72,15 +72,15 @@ class PurposeTransformer(BaseEstimator, TransformerMixin):
         df_ = X.copy()
 
         df_['purpose_clustered'] = df_['purpose'].apply(self._purpose_clustering)
-        return df_[['purpose_clustered']].values
+        return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
-        return np.array([self.output_col_])
+        return np.array(self.output_col_)
 
 
 class JobTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.output_col_ = "title_categorized"
+        self.output_col_ = ["title_categorized"]
         self.categories = {
             "Tech/Telecom": [r"tech", r"software", r"information", r"it", r"comcast", r"verizon", r"at[\\s&]*t",
                              r"accenture", r"saic", r"northrop", r"lockheed", r"booz", r"sprint", r"intel",
@@ -131,15 +131,15 @@ class JobTransformer(BaseEstimator, TransformerMixin):
             raise ValueError("DataFrame must have an 'purpose' column")
         df_ = X.copy()
         df_["title_categorized"] = df_["emp_title"].apply(self._classify)
-        return df_[['title_categorized']].values
+        return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
-        return np.array([self.output_col_])
+        return np.array(self.output_col_)
 
 
 class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.output_col_list_ = ["time_to_last_payment", "pull_after_issue"]
+        self.output_col_list_ = ["time_to_last_payment", "pull_after_issue", "term_months", "loan_status"]
 
     def fit(self, X, y=None):
         return self
@@ -155,16 +155,16 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
             raise ValueError("Input must be a pandas DataFrame")
 
         required = ["issue_date", "next_payment_date", "last_credit_pull_date", "last_payment_date"
-                                                                                "term_months"]
+                                                                                "term_months", "loan_status"]
         if not any(col in X.columns for col in required):
             raise ValueError("DataFrame must contain required columns")
 
         df_ = X.copy()
 
-        df_['next_payment_date'] = pd.to_datetime(df_['next_payment_date'], format='%Y-%m-%d')
-        df_['last_payment_date'] = pd.to_datetime(df_['last_payment_date'], format='%Y-%m-%d')
-        df_['issue_date'] = pd.to_datetime(df_['issue_date'], format='%Y-%m-%d')
-        df_['last_credit_pull_date'] = pd.to_datetime(df_['last_credit_pull_date'], format='%Y-%m-%d')
+        df_['next_payment_date'] = pd.to_datetime(df_['next_payment_date'], format='%d-%m-%Y')
+        df_['last_payment_date'] = pd.to_datetime(df_['last_payment_date'], format='%d-%m-%Y')
+        df_['issue_date'] = pd.to_datetime(df_['issue_date'], format='%d-%m-%Y')
+        df_['last_credit_pull_date'] = pd.to_datetime(df_['last_credit_pull_date'], format='%d-%m-%Y')
 
         df_['daysdiff_issue_pull'] = (df_['issue_date'] - df_['last_credit_pull_date']).dt.days
         df_['pull_after_issue'] = np.where(df_['daysdiff_issue_pull'] > 0, 1, 0)
@@ -181,7 +181,7 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
             axis=1
         )
 
-        return df_[["pull_after_issue", "time_to_last_payment"]].values
+        return df_[self.output_col_list_].values
 
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_list_)
@@ -189,21 +189,59 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
 class AutoFeatureTransformer(BaseEstimator, TransformerMixin):
 
     def __init__(self):
-        self._ct = None
+        self._ct = ColumnTransformer(transformers=[])
 
     def fit(self, X, y=None):
         df = pd.DataFrame(X.copy())
 
-        binary_cols = [i for i in df.columns if set(df[i].dropna().unique()) <= {0, 1}]
-        numeric_cols = [i for i in df.select_dtypes(include=[np.number]).columns
-                        if i not in binary_cols]
-        categorical_cols = [i for i in df.columns if i not in binary_cols + numeric_cols]
+        cols = ['state__north_state_address',
+                'state__address_state',
+                'purpose__purpose_clustered',
+                'job__title_categorized',
+                'date__time_to_last_payment',
+                'date__pull_after_issue',
+                'date__term_months',
+                'date__loan_status',
+                'progress__payment_progress',
+                'progress__loan_to_income',
+                'progress__annual_income',
+                'skewness__installment_sqrt',
+                'skewness__total_acc_sqrt',
+                'skewness__total_payment_sqrt',
+                'remainder__home_ownership',
+                'remainder__verification_status',
+                'remainder__dti',
+                'remainder__int_rate',
+                'remainder__emp_years',
+                'remainder__grade_numeric',
+                'remainder__sub_grade_numeric',
+                'remainder__issue_year',
+                'remainder__issue_month',
+                'remainder__issue_day',
+                'remainder__issue_weekday',
+                'remainder__last_credit_pull_year',
+                'remainder__last_credit_pull_month',
+                'remainder__last_credit_pull_day',
+                'remainder__last_credit_pull_weekday',
+                'remainder__last_payment_year',
+                'remainder__last_payment_month',
+                'remainder__last_payment_day',
+                'remainder__last_payment_weekday',
+                'remainder__next_payment_year',
+                'remainder__next_payment_month',
+                'remainder__next_payment_day',
+                'remainder__next_payment_weekday']
+
+        binary_cols = ['state__north_state_address','date__time_to_last_payment','date__pull_after_issue']
+        categorical_cols = ['state__address_state','purpose__purpose_clustered','job__title_categorized', 'date__term_months', 'date__loan_status',
+                            'remainder__home_ownership','remainder__verification_status', 'remainder__emp_years']
+        numeric_cols = [col for col in cols if col not in binary_cols + categorical_cols]
 
         self._ct = ColumnTransformer(
             transformers=[
-                ("bin",     "passthrough",               binary_cols),
+                ("bin",     "passthrough",  binary_cols),
                 ("onehot",  OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical_cols),
-                ("scale",   StandardScaler(),            numeric_cols),
+                ("scale",   StandardScaler(copy=True),            numeric_cols)
             ],
             remainder="drop",
         )
@@ -218,24 +256,70 @@ class AutoFeatureTransformer(BaseEstimator, TransformerMixin):
         return self._ct.get_feature_names_out(input_features)
 
 
-class MergeFeaturesDF(BaseEstimator, TransformerMixin):
-    def __init__(self, keep_columns, transformers):
-        self.keep_columns  = keep_columns
-        self.transformers  = transformers
+# class MergeFeaturesDF(BaseEstimator, TransformerMixin):
+#     def __init__(self, keep_columns, transformers):
+#         self.keep_columns  = keep_columns
+#         self.transformers  = transformers
+
+#     def fit(self, X, y=None):
+#         for _, tr in self.transformers:
+#             tr.fit(X, y)
+#         return self
+
+#     def transform(self, X):
+
+#         df = X[self.keep_columns].copy()
+
+#         for name, tr in self.transformers:
+#             cols   = tr.get_feature_names_out(None)
+#             values = tr.transform(X)
+#             df_tr  = pd.DataFrame(values, columns=cols, index=df.index)
+#             df     = pd.concat([df, df_tr], axis=1)
+
+#         return df
+    
+class ProgressTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        self.output_col_ = ["payment_progress", 'loan_to_income', 'annual_income']
 
     def fit(self, X, y=None):
-        for _, tr in self.transformers:
-            tr.fit(X, y)
         return self
 
     def transform(self, X):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input must be a pandas DataFrame")
+        if not all(col in X.columns for col in ['total_payment', 'installment',
+         'term_months', 'loan_amount', 'annual_income']):
+            raise ValueError("DataFrame must have all required columns")
 
-        df = X[self.keep_columns].copy()
+        df_ = X.copy()
 
-        for name, tr in self.transformers:
-            cols   = tr.get_feature_names_out(None)
-            values = tr.transform(X)
-            df_tr  = pd.DataFrame(values, columns=cols, index=df.index)
-            df     = pd.concat([df, df_tr], axis=1)
+        df_['payment_progress'] = df_['total_payment'] / (df_['installment'] * df_['term_months'])
+        df_['loan_to_income'] = df_['loan_amount'] / df_['annual_income']
+        return df_[self.output_col_].values
 
-        return df
+    def get_feature_names_out(self, input_features=None):
+        return np.array(self.output_col_)
+    
+class SkewnessReductionTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        self.output_col_ = ["installment_sqrt", 'total_acc_sqrt', 'total_payment_sqrt']
+
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input must be a pandas DataFrame")
+        if not all(col in X.columns for col in ["installment", 'total_acc', 'total_payment']):
+            raise ValueError("DataFrame must have all required columns")
+
+        df_ = X.copy()
+
+        df_['installment_sqrt'] = np.sqrt(df_['installment'])
+        df_['total_acc_sqrt'] = np.sqrt(df_['total_acc'])
+        df_['total_payment_sqrt'] = np.sqrt(df_['total_payment'])
+        return df_[self.output_col_].values
+
+    def get_feature_names_out(self, input_features=None):
+        return np.array(self.output_col_)
