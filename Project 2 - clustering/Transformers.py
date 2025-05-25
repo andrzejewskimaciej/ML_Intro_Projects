@@ -263,17 +263,15 @@ def getPipeline(basic_numeric_cols,basic_categorical_cols):
 
     ct_scale_cols=SkewnessReductionTransformer.requiredCols
 
-    ct_date = ColumnTransformer([
-        ('date', DateFeaturesTransformer(), DateFeaturesTransformer.requiredCols)
-    ], remainder='drop')
-    ct_state = ColumnTransformer([
+    ct_pass = ColumnTransformer([
+        ('date', DateFeaturesTransformer(), DateFeaturesTransformer.requiredCols),
         ('state', StateTransformer(), StateTransformer.requiredCols)
     ], remainder='drop')
 
+    ct_pass_cols=DateFeaturesTransformer.requiredCols+ StateTransformer.requiredCols
     ct1_pipeline = Pipeline([('custom', ct_onehot), ('onehot', OneHotEncoder(handle_unknown='ignore'))])
     ct2_pipeline = Pipeline([('custom', ct_scale), ('scale', StandardScaler())])
-    ct3_pipeline = Pipeline([('custom', ct_state)])
-    ct4_pipeline = Pipeline([('custom', ct_date)])
+    ct3_pipeline = Pipeline([('custom', ct_pass)])
 
     basic_num_pipeline = Pipeline([('scale', StandardScaler())])
     basic_cat_pipeline = Pipeline([('onehot', OneHotEncoder(handle_unknown='ignore'))])
@@ -281,8 +279,7 @@ def getPipeline(basic_numeric_cols,basic_categorical_cols):
     preprocessor = ColumnTransformer([
         ('ct_onehot', ct1_pipeline, ct_onehot_cols),
         ('ct_scale', ct2_pipeline, ct_scale_cols),
-        ('ct_date', ct4_pipeline, DateFeaturesTransformer.requiredCols),
-        ('ct_state', ct3_pipeline, StateTransformer.requiredCols),
+        ('ct_state', ct3_pipeline, ct_pass_cols),
         ('basic_num', basic_num_pipeline, basic_numeric_cols),
         ('basic_cat', basic_cat_pipeline, basic_categorical_cols),
     ], remainder='drop')
@@ -290,24 +287,25 @@ def getPipeline(basic_numeric_cols,basic_categorical_cols):
     return preprocessor
 
 class ProgressTransformer(BaseEstimator, TransformerMixin):
+    requiredCols=['total_payment', 'installment',
+         'term_months', 'loan_amount', 'annual_income']
     def __init__(self):
         self.output_col_ = ["payment_progress", 'loan_to_income', 'annual_income']
 
     def fit(self, X, y=None):
         return self
-
     def transform(self, X):
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")
-        if not all(col in X.columns for col in ['total_payment', 'installment',
-         'term_months', 'loan_amount', 'annual_income']):
+        if not all(col in X.columns for col in self.requiredCols ):
             raise ValueError("DataFrame must have all required columns")
 
         df_ = X.copy()
 
-        # Czy to dziala dla tych co splacili?
+        # Czy to dziala dla tych co splacili? te dane troche kret ja bym sprawdzil
         df_['payment_progress'] = df_['total_payment'] / (df_['installment'] * df_['term_months'])
-        df_['loan_to_income'] = df_['loan_amount'] / df_['annual_income']  # To juz ma dti
+
+        df_['loan_to_income'] = df_['loan_amount'] / df_['annual_income']  # To juz ma dti w jakims stopniu
         return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
