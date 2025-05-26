@@ -7,10 +7,13 @@ from sklearn.preprocessing import  OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
+# TRANSFORMERY GŁÓWNIE ROBIĄ TO SAMO, CO ZROBIONO W 02_FE
+
+# grupowanie po stanach: północ/południe
 class StateTransformer(BaseEstimator, TransformerMixin):
     requiredCols = ['address_state']
     def __init__(self):
-        self.output_col_ = ["north_state_address", "address_state"]
+        self.output_col_ = ["north_state_address"]
         self.North = {'CO', 'CT', 'DE', 'DC','ID', 'IL', 'IA', 'IN', 'ME', 'MD', 'MA',
                       'MI', 'MN', 'MT', 'NE', 'NH', 'NJ', 'ND', 'NV', 'NY', 'OH',
                       'OR', 'PA', 'RI', 'SD', 'UT', 'VT', 'WA', 'WI', 'WY'}
@@ -36,6 +39,7 @@ class StateTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_)
 
+# grupowanie po celach
 class PurposeTransformer(BaseEstimator, TransformerMixin):
     requiredCols = ['purpose']
     def __init__(self):
@@ -70,7 +74,7 @@ class PurposeTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_)
 
-
+# grupowanie po zawodach
 class JobTransformer(BaseEstimator, TransformerMixin):
     requiredCols = ['emp_title']
     def __init__(self):
@@ -131,6 +135,7 @@ class JobTransformer(BaseEstimator, TransformerMixin):
         return np.array(self.output_col_)
 
 
+# transformacja dat
 class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
     requiredCols = ["issue_date", "next_payment_date", "last_credit_pull_date", "last_payment_date",
                                                                                 "term_months", "loan_status"]
@@ -180,117 +185,81 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_list_)
 
-class AutoFeatureTransformer(BaseEstimator, TransformerMixin):
+# class AutoFeatureTransformer(BaseEstimator, TransformerMixin):
 
-    def __init__(self):
-        self._ct = ColumnTransformer(transformers=[])
+#     def __init__(self):
+#         self._ct = ColumnTransformer(transformers=[])
 
-    def fit(self, X, y=None):
-        df = pd.DataFrame(X.copy())
+#     def fit(self, X, y=None):
+#         df = pd.DataFrame(X.copy())
 
-        cols = ['state__north_state_address',
-                'state__address_state',
-                'purpose__purpose_clustered',
-                'job__title_categorized',
-                'date__time_to_last_payment',
-                'date__pull_after_issue',
-                'date__term_months',
-                'date__loan_status',
-                'progress__payment_progress',
-                'progress__loan_to_income',
-                'progress__annual_income',
-                'skewness__installment_sqrt',
-                'skewness__total_acc_sqrt',
-                'skewness__total_payment_sqrt',
-                'remainder__home_ownership',
-                'remainder__verification_status',
-                'remainder__dti',
-                'remainder__int_rate',
-                'remainder__emp_years',
-                'remainder__grade_numeric',
-                'remainder__sub_grade_numeric',
-                'remainder__issue_year',
-                'remainder__issue_month',
-                'remainder__issue_day',
-                'remainder__issue_weekday',
-                'remainder__last_credit_pull_year',
-                'remainder__last_credit_pull_month',
-                'remainder__last_credit_pull_day',
-                'remainder__last_credit_pull_weekday',
-                'remainder__last_payment_year',
-                'remainder__last_payment_month',
-                'remainder__last_payment_day',
-                'remainder__last_payment_weekday',
-                'remainder__next_payment_year',
-                'remainder__next_payment_month',
-                'remainder__next_payment_day',
-                'remainder__next_payment_weekday']
+#         cols = ['state__north_state_address',
+#                 'state__address_state',
+#                 'purpose__purpose_clustered',
+#                 'job__title_categorized',
+#                 'date__time_to_last_payment',
+#                 'date__pull_after_issue',
+#                 'date__term_months',
+#                 'date__loan_status',
+#                 'progress__payment_progress',
+#                 'progress__loan_to_income',
+#                 'progress__annual_income',
+#                 'skewness__installment_sqrt',
+#                 'skewness__total_acc_sqrt',
+#                 'skewness__total_payment_sqrt',
+#                 'remainder__home_ownership',
+#                 'remainder__verification_status',
+#                 'remainder__dti',
+#                 'remainder__int_rate',
+#                 'remainder__emp_years',
+#                 'remainder__grade_numeric',
+#                 'remainder__sub_grade_numeric',
+#                 'remainder__issue_year',
+#                 'remainder__issue_month',
+#                 'remainder__issue_day',
+#                 'remainder__issue_weekday',
+#                 'remainder__last_credit_pull_year',
+#                 'remainder__last_credit_pull_month',
+#                 'remainder__last_credit_pull_day',
+#                 'remainder__last_credit_pull_weekday',
+#                 'remainder__last_payment_year',
+#                 'remainder__last_payment_month',
+#                 'remainder__last_payment_day',
+#                 'remainder__last_payment_weekday',
+#                 'remainder__next_payment_year',
+#                 'remainder__next_payment_month',
+#                 'remainder__next_payment_day',
+#                 'remainder__next_payment_weekday']
 
-        binary_cols = ['state__north_state_address','date__time_to_last_payment','date__pull_after_issue']
-        categorical_cols = ['state__address_state','purpose__purpose_clustered','job__title_categorized', 'date__term_months', 'date__loan_status',
-                            'remainder__home_ownership','remainder__verification_status', 'remainder__emp_years']
-        numeric_cols = [col for col in cols if col not in binary_cols + categorical_cols]
+#         binary_cols = ['state__north_state_address','date__time_to_last_payment','date__pull_after_issue']
+#         categorical_cols = ['state__address_state','purpose__purpose_clustered','job__title_categorized', 'date__term_months', 'date__loan_status',
+#                             'remainder__home_ownership','remainder__verification_status', 'remainder__emp_years']
+#         numeric_cols = [col for col in cols if col not in binary_cols + categorical_cols]
 
-        self._ct = ColumnTransformer(
-            transformers=[
-                ("bin",     "passthrough",  binary_cols),
-                ("onehot",  OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical_cols),
-                ("scale",   StandardScaler(copy=True),            numeric_cols)
-            ],
-            remainder="drop",
-        )
+#         self._ct = ColumnTransformer(
+#             transformers=[
+#                 ("bin",     "passthrough",  binary_cols),
+#                 ("onehot",  OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical_cols),
+#                 ("scale",   StandardScaler(copy=True),            numeric_cols)
+#             ],
+#             remainder="drop",
+#         )
 
-        self._ct.fit(df)
-        return self
+#         self._ct.fit(df)
+#         return self
 
-    def transform(self, X):
-        return self._ct.transform(X)
+#     def transform(self, X):
+#         return self._ct.transform(X)
 
-    def get_feature_names_out(self, input_features=None):
-        return self._ct.get_feature_names_out(input_features)
+#     def get_feature_names_out(self, input_features=None):
+#         return self._ct.get_feature_names_out(input_features)
 
-def getPipeline(basic_numeric_cols,basic_categorical_cols):
-    ct_onehot = ColumnTransformer([
-        ('job', JobTransformer(), JobTransformer.requiredCols),
-        ('purpose', PurposeTransformer(), PurposeTransformer.requiredCols),
-    ], remainder='drop')
-
-    ct_onehot_cols=JobTransformer.requiredCols+PurposeTransformer.requiredCols
-
-    ct_scale = ColumnTransformer([
-        ('skew', SkewnessReductionTransformer(), SkewnessReductionTransformer.requiredCols)
-    ], remainder='drop')
-
-    ct_scale_cols=SkewnessReductionTransformer.requiredCols
-
-    ct_pass = ColumnTransformer([
-        ('date', DateFeaturesTransformer(), DateFeaturesTransformer.requiredCols),
-        ('state', StateTransformer(), StateTransformer.requiredCols)
-    ], remainder='drop')
-
-    ct_pass_cols=DateFeaturesTransformer.requiredCols+ StateTransformer.requiredCols
-    ct1_pipeline = Pipeline([('custom', ct_onehot), ('onehot', OneHotEncoder(handle_unknown='ignore'))])
-    ct2_pipeline = Pipeline([('custom', ct_scale), ('scale', StandardScaler())])
-    ct3_pipeline = Pipeline([('custom', ct_pass)])
-
-    basic_num_pipeline = Pipeline([('scale', StandardScaler())])
-    basic_cat_pipeline = Pipeline([('onehot', OneHotEncoder(handle_unknown='ignore'))])
-
-    preprocessor = ColumnTransformer([
-        ('ct_onehot', ct1_pipeline, ct_onehot_cols),
-        ('ct_scale', ct2_pipeline, ct_scale_cols),
-        ('ct_state', ct3_pipeline, ct_pass_cols),
-        ('basic_num', basic_num_pipeline, basic_numeric_cols),
-        ('basic_cat', basic_cat_pipeline, basic_categorical_cols),
-    ], remainder='drop')
-
-    return preprocessor
-
+# transformer do progressu w spłatach
 class ProgressTransformer(BaseEstimator, TransformerMixin):
     requiredCols=['total_payment', 'installment',
          'term_months', 'loan_amount', 'annual_income']
     def __init__(self):
-        self.output_col_ = ["payment_progress", 'loan_to_income', 'annual_income']
+        self.output_col_ = ["payment_progress", 'loan_to_income_full_period']
 
     def fit(self, X, y=None):
         return self
@@ -302,20 +271,20 @@ class ProgressTransformer(BaseEstimator, TransformerMixin):
 
         df_ = X.copy()
 
-        # Czy to dziala dla tych co splacili? te dane troche kret ja bym sprawdzil
         df_['payment_progress'] = df_['total_payment'] / (df_['installment'] * df_['term_months'])
+        df_['loan_to_income_full_period'] = df_['loan_amount'] / (df_['annual_income'] * df_['term_months'] / 12)
 
-        df_['loan_to_income'] = df_['loan_amount'] / df_['annual_income']  # To juz ma dti w jakims stopniu
         return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_)
-    
+
+# transformer do redukcji skośności    
 class SkewnessReductionTransformer(BaseEstimator, TransformerMixin):
-    requiredCols = ["installment", 'total_acc', 'total_payment']
+    requiredCols = ["installment", 'total_acc', 'total_payment', 'loan_amount']
 
     def __init__(self):
-        self.output_col_ = ["installment_sqrt", 'total_acc_sqrt', 'total_payment_sqrt']
+        self.output_col_ = ["installment_sqrt", 'total_acc_sqrt', 'total_payment_sqrt', 'loan_amount_sqrt']
 
     def fit(self, X, y=None):
         return self
@@ -331,7 +300,55 @@ class SkewnessReductionTransformer(BaseEstimator, TransformerMixin):
         df_['installment_sqrt'] = np.sqrt(df_['installment'])
         df_['total_acc_sqrt'] = np.sqrt(df_['total_acc'])
         df_['total_payment_sqrt'] = np.sqrt(df_['total_payment'])
+        df_['loan_amount_sqrt'] = np.sqrt(df_['loan_amount'])
+
         return df_[self.output_col_].values
 
     def get_feature_names_out(self, input_features=None):
         return np.array(self.output_col_)
+    
+# całościowy pipeline preprocessujący dane
+def getPipeline(basic_numeric_cols,basic_categorical_cols):
+    # transformer do danych kategorycznych
+    ct_onehot = ColumnTransformer([
+        ('job', JobTransformer(), JobTransformer.requiredCols),
+        ('purpose', PurposeTransformer(), PurposeTransformer.requiredCols),
+    ], remainder='drop')
+
+    ct_onehot_cols=JobTransformer.requiredCols+PurposeTransformer.requiredCols
+
+    # transformer do zmiennych z redukowaną skośnością
+    ct_scale = ColumnTransformer([
+        ('skew', SkewnessReductionTransformer(), SkewnessReductionTransformer.requiredCols)
+    ], remainder='drop')
+
+    ct_scale_cols=SkewnessReductionTransformer.requiredCols
+
+    # transformer do dat i podziału na stany
+    ct_pass = ColumnTransformer([
+        ('date', DateFeaturesTransformer(), DateFeaturesTransformer.requiredCols),
+        ('state', StateTransformer(), StateTransformer.requiredCols),
+        ('progress', ProgressTransformer(), ProgressTransformer.requiredCols)
+    ], remainder='drop')
+
+    ct_pass_cols=np.unique(DateFeaturesTransformer.requiredCols+ StateTransformer.requiredCols+ProgressTransformer.requiredCols).tolist()
+
+    # pipeline'y do cech z FE wraz z onehotem i standaryzacją
+    ct1_pipeline = Pipeline([('custom', ct_onehot), ('onehot', OneHotEncoder(handle_unknown='ignore', drop='first'))])
+    ct2_pipeline = Pipeline([('custom', ct_scale), ('scale', StandardScaler())])
+    ct3_pipeline = Pipeline([('custom', ct_pass)])
+
+    # onehot i standaryzacja pierwotnych zmiennych
+    basic_num_pipeline = Pipeline([('scale', StandardScaler())])
+    basic_cat_pipeline = Pipeline([('onehot', OneHotEncoder(handle_unknown='ignore', drop='first'))])
+
+    # połaczenie wszystkiego w całość
+    preprocessor = ColumnTransformer([
+        ('ct_onehot', ct1_pipeline, ct_onehot_cols),
+        ('ct_scale', ct2_pipeline, ct_scale_cols),
+        ('ct_pass', ct3_pipeline, ct_pass_cols),
+        ('basic_num', basic_num_pipeline, basic_numeric_cols),
+        ('basic_cat', basic_cat_pipeline, basic_categorical_cols),
+    ], remainder='drop')
+
+    return preprocessor
