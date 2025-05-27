@@ -328,7 +328,8 @@ def getPipeline(basic_numeric_cols,basic_categorical_cols):
     ct_pass = ColumnTransformer([
         ('date', DateFeaturesTransformer(), DateFeaturesTransformer.requiredCols),
         ('state', StateTransformer(), StateTransformer.requiredCols),
-        ('progress', ProgressTransformer(), ProgressTransformer.requiredCols)
+        ('progress', ProgressTransformer(), ProgressTransformer.requiredCols),
+        ('total_pass', 'passthrough', [])
     ], remainder='drop')
 
     ct_pass_cols=np.unique(DateFeaturesTransformer.requiredCols+ StateTransformer.requiredCols+ProgressTransformer.requiredCols).tolist()
