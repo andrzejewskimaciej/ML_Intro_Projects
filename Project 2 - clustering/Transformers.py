@@ -80,35 +80,44 @@ class JobTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
         self.output_col_ = ["title_categorized"]
         self.categories = {
-            "Tech/Telecom": [r"tech", r"software", r"information", r"it", r"comcast", r"verizon", r"at[\\s&]*t",
-                             r"accenture", r"saic", r"northrop", r"lockheed", r"booz", r"sprint", r"intel",
-                             r"microsoft", r"apple", r"google", r"oracle", r"cisco", r"ibm", r"hp", r"dell", r"digital",
-                             r"data"],
-            "Finance": [r"bank", r"finance", r"financial", r"fidelity", r"tiaa", r"credit", r"invest", r"citigroup",
-                        r"wells", r"chase", r"hartford", r"visa", r"mastercard", r"capital [oO]ne", r"goldman",
-                        r"morgan", r"accountant", r"cpa", r"auditor", r"insurance"],
-            "Military": [r"air force", r"\\barmy\\b", r"\\bnavy\\b", r"\\bmarine", r"usaf", r"u\\.s\\.\\s*army",
-                         r"u\\.s\\.\\s*navy", r"u\\.s\\.\\s*air", r"coast guard", r"military", r"department of defense",
-                         r"\\bdod\\b"],
-            "Education": [r"school", r"university", r"college", r"district", r"teacher", r"professor", r"education",
-                          r"institute"],
             "Healthcare": [r"hospital", r"health", r"kaiser", r"medical", r"clinic", r"pharma", r"nurse", r"doctor",
                            r"healthcare", r"patient"],
-            "Retail/Hospitality": [r"walmart", r"costco", r"target", r"home depot", r"lowe", r"walgreens", r"macy",
+            "Retail/Hospitality/Logistics": [r"walmart", r"costco", r"target", r"home depot", r"lowe", r"walgreens", r"macy",
                                    r"starbucks", r"marriott", r"hotel", r"restaurant", r"amazon", r"retail",
-                                   r"grocery"],
-            "Transportation/Logistics": [r"airline", r"aviation", r"faa", r"airport", r"transport", r"logistics",
+                                   r"grocery",r"airline", r"aviation", r"faa", r"airport", r"transport", r"logistics",
                                          r"freight", r"ups", r"fedex", r"truck", r"usps", r"postal service"],
-            "Government/Civil Service": [r"federal", r"department of", r"\\bcity of\\b", r"\\bcounty\\b", r"government",
-                                         r"homeland", r"irs", r"public", r"state of", r"court", r"postal"],
-            "Consulting/Professional Services": [r"consult", r"advisor", r"bain", r"mckinsey", r"deloitte", r"pwc",
-                                                 r"pricewaterhouse", r"ey", r"kpmg", r"booz allen"],
+            "Government/Civil Service/Education": [r"federal", r"department of", r"\\bcity of\\b", r"\\bcounty\\b", r"government",
+                                         r"homeland", r"irs", r"public", r"state of", r"court", r"postal",
+                                         r"air force", r"\\barmy\\b", r"\\bnavy\\b", r"\\bmarine", r"usaf",
+                                          r"u\\.s\\.\\s*army",
+                                          r"u\\.s\\.\\s*navy", r"u\\.s\\.\\s*air", r"coast guard", r"military",
+                                          r"department of defense",
+                                          r"\\bdod\\b",r"school", r"university", r"college", r"district", r"teacher", r"professor", r"education",
+                          r"institute"]
+                                         ,
+            "Consulting/Professional Services/Finance/Tech": [r"consult", r"advisor", r"bain", r"mckinsey", r"deloitte", r"pwc",
+                                                 r"pricewaterhouse", r"ey", r"kpmg", r"booz allen",
+                                                 r"law", r"legal", r"attorney", r"lawyer", r"paralegal",
+                                                 r"bank", r"finance", r"financial", r"fidelity", r"tiaa", r"credit",
+                                                 r"invest", r"citigroup",
+                                                 r"wells", r"chase", r"hartford", r"visa", r"mastercard",
+                                                 r"capital [oO]ne", r"goldman",
+                                                 r"morgan", r"accountant", r"cpa", r"auditor", r"insurance",
+                                                              r"tech", r"software", r"information", r"it", r"comcast",
+                                                              r"verizon", r"at[\\s&]*t",
+                                                              r"accenture", r"saic", r"northrop", r"lockheed", r"booz",
+                                                              r"sprint", r"intel",
+                                                              r"microsoft", r"apple", r"google", r"oracle", r"cisco",
+                                                              r"ibm", r"hp", r"dell", r"digital",
+                                                              r"data"]
+
+            ,
             "Self-Employed": [r"\\bself\\b", r"self[-\\s]?employed", r"freelance", r"owner", r"proprietor",
                               r"entrepreneur"],
             "Manufacturing/Engineering": [r"engineering", r"engineer", r"mfg", r"manufacturing", r"plant",
-                                          r"production", r"automotive", r"boeing"],
-            "Energy/Utilities": [r"energy", r"utility", r"power", r"electric", r"gas", r"oil", r"solar"],
-            "Legal/Law": [r"law", r"legal", r"attorney", r"lawyer", r"paralegal"],
+                                          r"production", r"automotive", r"boeing",r"energy", r"utility", r"power", r"electric", r"gas", r"oil", r"solar"]
+
+
         }
 
     def fit(self, X, y=None):
@@ -140,7 +149,7 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
     requiredCols = ["issue_date", "next_payment_date", "last_credit_pull_date", "last_payment_date",
                                                                                 "term_months", "loan_status"]
     def __init__(self):
-        self.output_col_list_ = ["time_to_last_payment", "pull_after_issue"]
+        self.output_col_list_ = ["time_to_last_payment", "daysdiff_issue_pull"]
     def fit(self, X, y=None):
         return self
 
@@ -166,7 +175,7 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
         df_['last_credit_pull_date'] = pd.to_datetime(df_['last_credit_pull_date'], format='%d-%m-%Y')
 
         df_['daysdiff_issue_pull'] = (df_['issue_date'] - df_['last_credit_pull_date']).dt.days
-        df_['pull_after_issue'] = np.where(df_['daysdiff_issue_pull'] > 0, 1, 0)
+        #df_['pull_after_issue'] = np.where(df_['daysdiff_issue_pull'] > 0, 1, 0)
 
         df_['end_date'] = df_.apply(
             lambda row: row['issue_date'] + DateOffset(months=row['term_months']),
@@ -180,6 +189,7 @@ class DateFeaturesTransformer(BaseEstimator, TransformerMixin):
             axis=1
         )
         df_['time_to_last_payment']=(df_['time_to_last_payment'] - df_['time_to_last_payment'].mean()) / df_['time_to_last_payment'].std()
+        df_['daysdiff_issue_pull']=(df_['daysdiff_issue_pull']-df_['daysdiff_issue_pull'].mean()) /df_['daysdiff_issue_pull'].std()
         return df_[self.output_col_list_].values
 
     def get_feature_names_out(self, input_features=None):
@@ -242,7 +252,7 @@ class SkewnessReductionTransformer(BaseEstimator, TransformerMixin):
 # całościowy pipeline preprocessujący dane
 # bez kolumn 'grade_numeric' i 'int_rate', bo silnie skorelowane z grade, a mówią o tym samym
 def getPipeline(basic_numeric_cols=['dti', 'annual_income', 'emp_years','sub_grade_numeric'],
-                basic_categorical_cols=['home_ownership','loan_status', 'verification_status', 'term_months']):
+                basic_categorical_cols=['home_ownership','loan_status', 'verification_status']):
     # transformer do danych kategorycznych
     ct_onehot = ColumnTransformer([
         ('job', JobTransformer(), JobTransformer.requiredCols),
