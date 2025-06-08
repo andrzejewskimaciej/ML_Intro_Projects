@@ -1,4 +1,3 @@
-1. Podzial danych
-2. Ostateczne kolumny biorace udzial do wybrania
-3. Puszczenie kombajna -> tsne 
-4. Ostateczny model i prezentacja
+1. Wybor Ostateczny 
+2. Interepretowalnosc modelu + walidacja
+3. Prezka 
