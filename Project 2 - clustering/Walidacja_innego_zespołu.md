@@ -7,9 +7,17 @@ Duża różnorodność w algorytmach klasteryzujących.
 
 ## 3 kamień milowy
 
-Warto zastanowić się nad bardziej obiektywnym podejściem do nadawania wag zmiennym transakcyjnym – zamiast arbitralnie rozkładać je liniowo od 0,14 do 1,0, można by wykorzystać ich zmienność czy miarę istotności albo przynajmniej przeprowadzić analizę wrażliwości, by sprawdzić, jak różne zestawy wag wpływają na strukturę klastrów. Podobnie jeśli chodzi o wizualizację za pomocą t-SNE – domyślne parametry (perplexity = 30, init = PCA) nie zawsze są optymalne, dlatego warto eksperymentować z różnymi wartościami perplexity i learning_rate. Dodatkowo warto rozszerzyć paletę testowanych algorytmów – poza KMeans można byłoby porównać wyniki z DBSCAN, klastrowaniem hierarchicznym czy modelami mieszankowymi Gaussa, co pozwoliłoby wyłonić najbardziej naturalne podziały w zbiorze. Brak podziału danych na dane treningowe, testowe oraz walidacyjne. Wyniki końcowe bardzo dobre z  ciekawymi uzasadnieniem decyzji modelu wraz z  interpretacjami.
+Warto zastanowić się nad bardziej obiektywnym podejściem do nadawania wag zmiennym transakcyjnym – zamiast arbitralnie rozkładać je liniowo od 0,14 do 1,0, można by wykorzystać ich zmienność czy miarę istotności albo przynajmniej przeprowadzić analizę wrażliwości, by sprawdzić, jak różne zestawy wag wpływają na strukturę klastrów. Podobnie jeśli chodzi o wizualizację za pomocą t-SNE – domyślne parametry (perplexity = 30, init = PCA) nie zawsze są optymalne, dlatego warto eksperymentować z różnymi wartościami perplexity i learning_rate. 
 
+Dodatkowo warto rozszerzyć paletę testowanych algorytmów – poza KMeans można byłoby porównać wyniki z DBSCAN, klastrowaniem hierarchicznym czy modelami mieszankowymi Gaussa, co pozwoliłoby wyłonić najbardziej naturalne podziały w zbiorze **\***.
 
+Brak podziału danych na dane treningowe, testowe oraz walidacyjne **\***.
+
+Wyniki końcowe bardzo dobre z ciekawymi uzasadnieniem decyzji modelu wraz z interpretacjami.
+
+**\*** *błędy zostały naprawione po walidacji projektu, ale przed wygenerowaniem poniższej oceny ilościowej*
+
+---
 
 Finalny model oceniono również za pomocą metryk ilościowych oraz jakościowych na specjalnie wydzielonym zbiorze walidacyjnym. W porównaniu do wyników na danych treningowych:
 
