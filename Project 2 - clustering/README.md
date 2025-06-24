@@ -1,1 +1,5 @@
+# Projekt 2 - Klasteryzacja
+
+### Na podstawie danych *[Comprehensive Loan Information for Credit Risk](https://www.kaggle.com/datasets/nezukokamaado/auto-loan-dataset)*
+
 Celem projektu jest wykorzystanie danych dotyczących pożyczek do przeprowadzenia klasteryzacji klientów w celu segmentacji rynku dla działań marketingowych. Dysponujemy zestawem cech, takich jak stan zamieszkania, typ aplikacji, długość zatrudnienia, tytuł zawodowy, ocena kredytowa, forma posiadania domu, data emisji pożyczki, status pożyczki, roczny dochód, wskaźnik zadłużenia (DTI), wysokość raty, oprocentowanie, kwota pożyczki i inne. Optymalna liczba klastrów zostanie wybrana na podstawie odpowiednich metryk, a następnie każdy klaster zostanie dokładnie przeanalizowany pod kątem wspólnych cech klientów, co pozwoli zrozumieć ich potrzeby i preferencje. Długofalowym efektem będzie zwiększenie skuteczności kampanii marketingowych, wyższy poziom konwersji oraz silniejsze dopasowanie oferty do profilu klienta. Projekt pozwoli firmie lepiej zrozumieć swoją bazę klientów i skuteczniej wykorzystywać dane w działaniach biznesowych.
