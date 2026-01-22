@@ -4,6 +4,8 @@ Ten projekt zawiera kompletny system modelowania ryzyka kredytowego dla przedsi�
 
 System obejmuje pełen potok przetwarzania: od inżynierii cech, przez selekcję zmiennych i trening modeli, aż po kalibrację probabilistyczną do poziomu 4% i moduł wyjaśnialności (XAI).
 
+Pełny raport techniczny dostępny jest [tutaj](https://github.com/andrzejewskimaciej/ML_Projects/blob/main/Interpretable%20Rating%20Models%20(xAI)/Raport_techniczny.pdf).
+
 ---
 
 ## 🚀 Kluczowe Funkcjonalności
